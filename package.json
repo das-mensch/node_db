@@ -1,0 +1,21 @@
+{
+  "scripts": {
+    "test": "nyc --reporter=text --reporter=html mocha --recursive"
+  },
+  "devDependencies": {
+    "mocha": "^3.4.2",
+    "nyc": "^11.0.3"
+  },
+  "nyc": {
+    "include": [
+      "src/**/*.js"
+    ],
+    "exclude": [
+      "src/**/index.js",
+      "**/node_modules/**",
+      "**/test/**",
+      "**/coverage/**"
+    ],
+    "all": true
+  }
+}
