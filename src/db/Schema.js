@@ -30,7 +30,7 @@ class Schema {
     }
 
     addField(field) {
-        if (! field instanceof Field) {
+        if (!(field instanceof Field)) {
             throw new InvalidTypeException();
         }
         if (this._fields.has(field.name)) {
