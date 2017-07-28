@@ -8,5 +8,15 @@ describe('DoubleType', () => {
         it('is 3', () => {
             assert.equal(DoubleType.ID, 3);
         });
+        it('id of new type is 3', () => {
+            let type = new DoubleType();
+            assert.equal(type.id, DoubleType.ID);
+        });
+    });
+    describe('#size', () => {
+        it('is correct', () => {
+            let type = new DoubleType();
+            assert.equal(type.size, 8);
+        });
     });
 });
