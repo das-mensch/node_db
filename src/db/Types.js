@@ -5,7 +5,7 @@ const { InvalidTypeException } = require('./exception');
 class Types {
     static isValidType(type) {
         if (!(type instanceof BaseType)) {
-            throw new InvalidTypeException();
+            return false;
         }
         let valid = false;
         for (let validType in DBTypes) {
