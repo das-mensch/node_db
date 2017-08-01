@@ -26,7 +26,7 @@ class Schema {
     }
 
     get fields() {
-        return this._fields.values();
+        return this._fields;
     }
 
     addField(field) {
@@ -72,6 +72,9 @@ class Schema {
 
     read() {
         let fileName = `${global._config.schemaDir}/schema_${this._name}.sdf`;
+        if (!fs.existsSync(fileName)) {
+            throw new SchemaException();
+        }
         const fd = fs.openSync(fileName, 'r');
         let header = new Buffer(HEADER_SIZE);
         fs.readSync(fd, header, 0, HEADER_SIZE);
