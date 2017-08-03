@@ -4,7 +4,7 @@ const ID = 2;
 
 class Int32Type extends BaseType {
     constructor() {
-        super(ID, 4);
+        super(ID, 4, 0);
     }
 
     static get ID() {

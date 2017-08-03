@@ -8,7 +8,7 @@ class TextType extends BaseType {
         if (typeof size !== 'number' || size <= 0 || size > 255) {
             throw new InvalidArgumentException();
         }
-        super(ID, size);
+        super(ID, size, '');
     }
 
     static get ID() {

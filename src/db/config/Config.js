@@ -1,6 +1,7 @@
 class Config {
     constructor() {
         this._schemaDir = './';
+        this._dataDir = './';
     }
 
     get schemaDir() {
@@ -9,6 +10,14 @@ class Config {
 
     set schemaDir(schemaDir) {
         this._schemaDir = schemaDir;
+    }
+
+    get dataDir() {
+        return this._dataDir;
+    }
+
+    set dataDir(dataDir) {
+        this._dataDir = dataDir;
     }
 }
 

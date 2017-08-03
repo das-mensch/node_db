@@ -1,8 +1,8 @@
 const fs = require('fs');
 
-const { InvalidTypeException, InvalidCallException, SchemaException } = require('./exception');
+const { InvalidTypeException, InvalidCallException, SchemaException, InvalidArgumentException } = require('./exception');
 const Field = require('./Field');
-const Types = require('./Types');
+const Table = require('./Table');
 
 const MAGIC_NUMBER = 0x00464453;
 const VERSION_MAJOR = 1;
@@ -13,6 +13,7 @@ class Schema {
     constructor(name) {
         this._name = name;
         this._fields = new Map();
+        this._rowSize = null;
     }
 
     static fromName(name) {
@@ -29,38 +30,53 @@ class Schema {
         return this._fields;
     }
 
+    get name() {
+        return this._name;
+    }
+
+    get rowSize() {
+        if (this._rowSize !== null) {
+            return this._rowSize;
+        }
+        this._rowSize = 0;
+        for (const field of this._fields.values()) {
+            this._rowSize += field.type.size;
+        }
+        return this._rowSize;
+    }
+
     addField(field) {
         if (!(field instanceof Field)) {
-            throw new InvalidTypeException();
+            throw new InvalidArgumentException();
         }
         if (this._fields.has(field.name)) {
             throw new InvalidCallException();
         }
         this._fields.set(field.name, field);
+        this._rowSize = null;
     }
 
     removeField(name) {
+        this._rowSize = null;
         return this._fields.delete(name);
     }
 
     toBuffer() {
-        let outputBuffer = new Buffer(55 + this._fields.size * 50);
-        outputBuffer.fill(0);
+        let totalSize = HEADER_SIZE + this._fields.size * Field.PERSISTENCE_SIZE;
+        let buffers = [];
+        let headerBuffer = Buffer.alloc(HEADER_SIZE);
         let offset = 0;
-        outputBuffer.writeUInt32LE(MAGIC_NUMBER, offset);
+        headerBuffer.writeUInt32LE(MAGIC_NUMBER, offset);
         offset += 4;
-        outputBuffer.writeUInt8(VERSION_MAJOR, offset++);
-        outputBuffer.writeUInt8(VERSION_MINOR, offset++);
-        outputBuffer.writeUInt8(this._fields.size, offset++);
-        outputBuffer.write(this._name, offset);
-        offset += 48;
-        for (let [name, field] of this._fields) {
-            outputBuffer.writeUInt8(field.type.id, offset++);
-            outputBuffer.writeUInt8(field.type.size, offset++);
-            outputBuffer.write(name, offset);
-            offset += 48;
+        headerBuffer.writeUInt8(VERSION_MAJOR, offset++);
+        headerBuffer.writeUInt8(VERSION_MINOR, offset++);
+        headerBuffer.writeUInt8(this._fields.size, offset++);
+        headerBuffer.write(this._name, offset, 48);
+        buffers.push(headerBuffer);
+        for (let field of this._fields.values()) {
+            buffers.push(field.toBuffer());
         }
-        return outputBuffer;
+        return Buffer.concat(buffers, totalSize);
     }
 
     save() {
@@ -84,14 +100,11 @@ class Schema {
         let nameBuffer = header.slice(7, 48);
         this._name = nameBuffer.toString('utf8', 0, nameBuffer.indexOf('\0'));
         let fieldCount = header.readUInt8(6);
-        let fieldBuffer = new Buffer(50);
+        let fieldBuffer = Buffer.alloc(Field.PERSISTENCE_SIZE);
         for (let i = 0; i < fieldCount; i++) {
-            fs.readSync(fd, fieldBuffer, 0, 50);
-            let fieldType = fieldBuffer.readUInt8(0);
-            let fieldSize = fieldBuffer.readUInt8(1);
-            let nameBuffer = fieldBuffer.slice(2, Field.MAX_NAME_LENGTH);
-            let fieldName = nameBuffer.toString('utf8', 0, nameBuffer.indexOf('\0'));
-            this.addField(new Field(Types.forId(fieldType, fieldSize), fieldName));
+            fs.readSync(fd, fieldBuffer, 0, Field.PERSISTENCE_SIZE);
+            console.log(Field.fromBuffer(fieldBuffer));
+            this.addField(Field.fromBuffer(fieldBuffer));
         }
         fs.closeSync(fd);
     }

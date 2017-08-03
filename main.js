@@ -1,27 +1,41 @@
 const DB = require('./src/db');
+const readline = require('readline');
+const fs = require('fs');
 
 global._config = new DB.Config();
 
-let mySchema = new DB.Schema("mySchema");
+let mySchema = DB.Schema.fromName("plz");
+/*let mySchema = new DB.Schema("plz");
 mySchema.addField(
     new DB.Field(
-        new DB.Types.Int32Type(),
-        "testInt32"
-));
+        new DB.Types.TextType(10),
+        "plz"
+    ));
 mySchema.addField(
     new DB.Field(
-        new DB.Types.TextType(15),
-        "testTextType"
-));
-mySchema.addField(
-    new DB.Field(
-        new DB.Types.DoubleType(),
-        "testDoubleType"
-));
-
+        new DB.Types.TextType(40),
+        "ort"
+    ));
 mySchema.save();
+*/
+let myTable = new DB.Table(mySchema);
+/*
+let stream = fs.createReadStream('./zuordnung_plz_ort_b.csv');
+let rl = readline.createInterface(stream);
+let id = 1;
+rl.on('line', (line) => {
+    let [ort, plz] = line.split(',');
+    myTable.writeById(id++, {
+        plz: plz,
+        ort: ort
+    })
+});
 
-let anotherSchema = new DB.Schema('mySchema');
-anotherSchema.read();
+stream.on('end', () => {
+    console.log(myTable.findByKeyValue('plz', '959'));
+});
+*/
 
-console.log(anotherSchema);
+console.log(myTable.findByKeyValue('ort', 'Lipp'));
+console.log(myTable.findByKeyValue('plz', '5955'));
+console.log(myTable.findByKeyValue('ort', 'Burg'));

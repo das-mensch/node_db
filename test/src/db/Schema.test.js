@@ -7,7 +7,7 @@ const Config = require('../../../src/db/config');
 const Schema = require('../../../src/db/Schema');
 const Field = require('../../../src/db/Field');
 const Types = require('../../../src/db/Types');
-const { SchemaException, InvalidTypeException, InvalidCallException } = require('../../../src/db/exception');
+const { SchemaException, InvalidArgumentException, InvalidCallException } = require('../../../src/db/exception');
 
 global._config = new Config();
 global._config.schemaDir = os.tmpDir;
@@ -35,25 +35,28 @@ describe('Schema', () => {
         });
     });
     describe('#addField', () => {
-        it('should throw InvalidTypeException if parameter is not a field', () => {
+        it('should throw InvalidArgumentException if parameter is not a field', () => {
             let schema = new Schema('test_schema');
-            assert.throws(() => { schema.addField(null) }, (e) => { return e instanceof InvalidTypeException; });
+            assert.throws(() => { schema.addField(null) }, (e) => { return e instanceof InvalidArgumentException; });
         });
         it('should throw InvalidCallException if field already exists', () => {
             let schema = new Schema('test_schema');
-            schema.addField(new Field(Types.forId(2), 'existent'));
-            assert.throws(() => { schema.addField(new Field(Types.forId(3), 'existent')); }, (e) => { return e instanceof InvalidCallException; });
+            let obj = { name: 'existent', type: 'int32' };
+            schema.addField(new Field(obj));
+            assert.throws(() => { schema.addField(new Field(obj)); }, (e) => { return e instanceof InvalidCallException; });
         });
         it('should add Field.. DUH', () => {
             let schema = new Schema('test_schema');
-            schema.addField(new Field(Types.forId(2), 'existent'));
+            let obj = { name: 'existent', type: 'int32' };
+            schema.addField(new Field(obj));
             assert.equal(schema.fields.size, 1);
         });
     });
     describe('#removeField', () => {
         it('removes given field', () => {
             let schema = new Schema('test_schema');
-            schema.addField(new Field(Types.forId(2), 'existent'));
+            let obj = { name: 'existent', type: 'int32' };
+            schema.addField(new Field(obj));
             assert.equal(schema.fields.size, 1);
             schema.removeField('existent');
             assert.equal(schema.fields.size, 0);
@@ -62,7 +65,8 @@ describe('Schema', () => {
     describe('#save', () => {
         it('saves Schema correct', () => {
             let schema = new Schema('test_schema');
-            schema.addField(new Field(Types.forId(2), 'existent'));
+            let obj = { name: 'existent', type: 'int32' };
+            schema.addField(new Field(obj));
             schema.save();
             assert.equal(fs.existsSync(`${os.tmpDir}/schema_test_schema.sdf`), true);
             let testSchema = Schema.fromName('test_schema');
